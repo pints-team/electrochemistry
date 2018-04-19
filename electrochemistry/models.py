@@ -1,3 +1,4 @@
+from __future__ import print_function
 from math import sqrt,pi
 from pints_cpp import seq_electron_transfer3_explicit,e_implicit_exponential_mesh,pints_map,pints_vector
 import pints
@@ -19,25 +20,25 @@ class ECModel:
     """
     def __init__(self,params):
         try:
-            print 'creating ECModel with (dimensional) parameters:'
-            print '\treversed: ',params['reversed']
-            print '\tEstart: ',params['Estart']
-            print '\tEreverse: ',params['Ereverse']
-            print '\tomega: ',params['omega']
-            print '\tphase: ',params['phase']
-            print '\tamplitude: ',params['dE']
-            print '\tdc scan rate: ',params['v']
-            print '\ttemperature: ',params['T']
-            print '\telectrode area: ',params['a']
-            print '\tc_inf: ',params['c_inf']
-            print '\tdiffusion constant: ',params['D']
-            print '\tRu: ',params['Ru']
-            print '\tCdl: ',params['Cdl']
-            print '\tE0: ',params['E0']
-            print '\tk0: ',params['k0']
-            print '\talpha: ',params['alpha']
+            print('creating ECModel with (dimensional) parameters:')
+            print('\treversed: ',params['reversed'])
+            print('\tEstart: ',params['Estart'])
+            print('\tEreverse: ',params['Ereverse'])
+            print('\tomega: ',params['omega'])
+            print('\tphase: ',params['phase'])
+            print('\tamplitude: ',params['dE'])
+            print('\tdc scan rate: ',params['v'])
+            print('\ttemperature: ',params['T'])
+            print('\telectrode area: ',params['a'])
+            print('\tc_inf: ',params['c_inf'])
+            print('\tdiffusion constant: ',params['D'])
+            print('\tRu: ',params['Ru'])
+            print('\tCdl: ',params['Cdl'])
+            print('\tE0: ',params['E0'])
+            print('\tk0: ',params['k0'])
+            print('\talpha: ',params['alpha'])
         except NameError as e:
-            print 'NameError: ',e.value
+            print('NameError: ',e.value)
 
         self.dim_params = copy.copy(params)
 
@@ -100,6 +101,29 @@ class ECModel:
         else:
             return NaN
 
+    def non_dimensionalise(self,value,name):
+        if name == 'Estart':
+            return value/self.E0
+        elif name == 'Ereverse':
+            return value/self.E0
+        elif name == 'omega':
+            return value*(2*pi*self.T0)
+        elif name == 'phase':
+            return value
+        elif name == 'dE':
+            return value/self.E0
+        elif name == 'k0':
+            return value/self.dim_params['D']*self.L0
+        elif name == 'alpha':
+            return value
+        elif name == 'E0':
+            return value/self.E0
+        elif name == 'Ru':
+            return value/self.E0*self.I0
+        elif name == 'Cdl':
+            return value/self.I0/self.T0*(self.dim_params['a']*self.E0)
+        else:
+            return NaN
 
     def simulate(self, use_param_vector=None, use_param_vector_name=None, use_times=None, use_current=None):
         params = self.params
@@ -267,33 +291,33 @@ generated quantities {
 class POMModel:
     def __init__(self,params):
         try:
-            print 'creating POMModel with (dimensional) parameters:'
-            print '\tEstart: ',params['Estart']
-            print '\tEreverse: ',params['Ereverse']
-            print '\tomega: ',params['omega']
-            print '\tphase: ',params['phase']
-            print '\tamplitude: ',params['dE']
-            print '\tdc scan rate: ',params['v']
-            print '\ttemperature: ',params['T']
-            print '\telectrode area: ',params['a']
-            print '\tc_inf: ',params['c_inf']
-            print '\tRu: ',params['Ru']
-            print '\tCdl: ',params['Cdl']
-            print '\tE01: ',params['E01']
-            print '\tE02: ',params['E02']
-            print '\tE11: ',params['E11']
-            print '\tE12: ',params['E12']
-            print '\tE21: ',params['E21']
-            print '\tE22: ',params['E22']
-            print '\tk01: ',params['k01']
-            print '\tk02: ',params['k02']
-            print '\tk11: ',params['k11']
-            print '\tk12: ',params['k12']
-            print '\tk21: ',params['k21']
-            print '\tk22: ',params['k22']
-            print '\tGamma: ',params['Gamma']
+            print('creating POMModel with (dimensional) parameters:')
+            print('\tEstart: ',params['Estart'])
+            print('\tEreverse: ',params['Ereverse'])
+            print('\tomega: ',params['omega'])
+            print('\tphase: ',params['phase'])
+            print('\tamplitude: ',params['dE'])
+            print('\tdc scan rate: ',params['v'])
+            print('\ttemperature: ',params['T'])
+            print('\telectrode area: ',params['a'])
+            print('\tc_inf: ',params['c_inf'])
+            print('\tRu: ',params['Ru'])
+            print('\tCdl: ',params['Cdl'])
+            print('\tE01: ',params['E01'])
+            print('\tE02: ',params['E02'])
+            print('\tE11: ',params['E11'])
+            print('\tE12: ',params['E12'])
+            print('\tE21: ',params['E21'])
+            print('\tE22: ',params['E22'])
+            print('\tk01: ',params['k01'])
+            print('\tk02: ',params['k02'])
+            print('\tk11: ',params['k11'])
+            print('\tk12: ',params['k12'])
+            print('\tk21: ',params['k21'])
+            print('\tk22: ',params['k22'])
+            print('\tGamma: ',params['Gamma'])
         except NameError as e:
-            print 'NameError: ',e.value
+            print('NameError: ',e.value)
 
         self.dim_params = params
 
