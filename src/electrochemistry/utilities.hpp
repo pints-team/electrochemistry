@@ -4,15 +4,21 @@
 #include <cmath>
 #include <iostream>
 #include <map>
+#include <pybind11/numpy.h>
+#include <pybind11/pybind11.h>
 
-template <typename K, typename V>
-V get(const py::dict &m, const K &key, const V &defval) {
-  auto it = m.find(key);
-  if (it == m.end()) {
+namespace py = pybind11;
+
+template <typename V>
+V get(py::dict m, const std::string &key, const V &defval) {
+  return m[key.c_str()].cast<V>();
+  /*
+  if (m.contains(key.c_str())) {
     return defval;
   } else {
-    return it->second;
+    return m[key.c_str()].cast<V>();
   }
+  */
 }
 
 struct Efun {
@@ -22,7 +28,7 @@ struct Efun {
         omega(other.omega), phase(other.phase), dt(other.dt),
         treverse(other.treverse), direction(other.direction),
         dt_data(other.dt_data), Edata(other.Edata){};
-  Efun(const vector *Edata, const double dt_data, const double dE,
+  Efun(const std::vector<double> *Edata, const double dt_data, const double dE,
        const double omega, const double phase, const double dt)
       : Edata(Edata), dt_data(dt_data), dE(dE), omega(omega), phase(phase),
         dt(dt){};
@@ -112,7 +118,7 @@ struct Efun {
   double Estart, Ereverse, dE, omega, dt, treverse;
   double phase;
   int direction;
-  const vector *Edata;
+  const std::vector<double> *Edata;
   double dt_data;
 };
 

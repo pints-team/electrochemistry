@@ -1,6 +1,5 @@
 from __future__ import print_function
 import numpy as np
-from pints_cpp import pints_vector
 from math import pi, floor, ceil
 
 
@@ -70,7 +69,3 @@ class ECTimeData:
         # self.distance_scale = np.linalg.norm(self.current)
 
         print('\tAfter downsampling, have ', len(self.times), ' data points')
-
-    # def log_likelihood(self,current,noise_variance):
-    #    diff = current-self.current
-    #    return -(0.5/noise_variance)*np.inner(diff,diff)

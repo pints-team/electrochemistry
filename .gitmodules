@@ -1,3 +1,6 @@
 [submodule "lib/pybind11"]
 	path = lib/pybind11
 	url = https://github.com/pybind/pybind11.git
+[submodule "lib/eigen3"]
+	path = lib/eigen3
+	url = https://github.com/eigenteam/eigen-git-mirror.git

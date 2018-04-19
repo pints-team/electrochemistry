@@ -7,7 +7,7 @@
 #include <iostream>
 #include <math.h>
 
-namespace pints {
+namespace electrochemistry {
 
 struct BCfun {
   BCfun(const double h0, const double Cdl, const double f1, const double e1,
@@ -69,8 +69,9 @@ struct TolFun {
   const double tol;
 };
 
-void e_implicit_exponential_mesh(py::dict params, py::array Itot_numpy,
-                                 py::array t_numpy) {
+void e_implicit_exponential_mesh(py::dict params,
+                                 py::array_t<double> Itot_numpy,
+                                 py::array_t<double> t_numpy) {
 
   py::buffer_info Itot_info = Itot_numpy.request();
   py::buffer_info t_info = t_numpy.request();
@@ -83,7 +84,7 @@ void e_implicit_exponential_mesh(py::dict params, py::array Itot_numpy,
 
   const size_t N = Itot_info.shape[0];
   auto Itot = reinterpret_cast<double *>(Itot_info.ptr);
-  auto t = reinterpret_cast<double *>(t_info..ptr);
+  auto t = reinterpret_cast<double *>(t_info.ptr);
 
   const double k0 = get(params, std::string("k0"), 35.0);
   const double alpha = get(params, std::string("alpha"), 0.5);
@@ -101,6 +102,7 @@ void e_implicit_exponential_mesh(py::dict params, py::array Itot_numpy,
   const double pi = boost::math::constants::pi<double>();
   const double omega = get(params, std::string("omega"), 2 * pi);
   const double phase = get(params, std::string("phase"), 0.0);
+  const double dt = (1.0 / Nt) * 2 * pi / omega;
 
 #ifndef NDEBUG
   std::cout << "Running e_implicit_exponential_mesh with parameters:"
@@ -132,7 +134,7 @@ void e_implicit_exponential_mesh(py::dict params, py::array Itot_numpy,
 #ifndef NDEBUG
   std::cout << "\th0= " << h0 << std::endl;
 #endif
-  vector h(Nx + 1);
+  std::vector<double> h(Nx + 1);
   double sum;
   for (int i = 0; i <= Nx; i++) {
     h[i] = pow(r, i) * h0;
@@ -151,18 +153,18 @@ void e_implicit_exponential_mesh(py::dict params, py::array Itot_numpy,
   }
   Efun E(Estart, Ereverse, dE, omega, phase + phase_adjust, dt);
 
-  vector a(Nx + 1);
-  vector b(Nx + 1);
-  vector c(Nx + 1);
+  std::vector<double> a(Nx + 1);
+  std::vector<double> b(Nx + 1);
+  std::vector<double> c(Nx + 1);
   for (int i = 1; i < Nx; i++) {
     const double hstar = h[i] * h[i - 1] * (h[i] + h[i - 1]);
     a[i] = 2 * h[i] / hstar;
     b[i] = 1 / dt + 2 * (h[i] + h[i - 1]) / hstar;
     c[i] = 2 * h[i - 1] / hstar;
   }
-  vector d(Nx + 1);
-  vector e(Nx + 1);
-  vector f(Nx + 1);
+  std::vector<double> d(Nx + 1);
+  std::vector<double> e(Nx + 1);
+  std::vector<double> f(Nx + 1);
   e[Nx] = 0;
   f[Nx] = 1;
 
@@ -170,7 +172,7 @@ void e_implicit_exponential_mesh(py::dict params, py::array Itot_numpy,
     e[i] = a[i] / (b[i] - c[i] * e[i + 1]);
   }
 
-  vector U(Nx + 1, 1);
+  std::vector<double> U(Nx + 1, 1);
 
   double Itot0, Itot1, Itot_neg1;
   double t1 = 0;
@@ -237,4 +239,4 @@ void e_implicit_exponential_mesh(py::dict params, py::array Itot_numpy,
   }
 }
 
-} // namespace pints
+} // namespace electrochemistry

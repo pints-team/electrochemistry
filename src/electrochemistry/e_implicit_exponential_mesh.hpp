@@ -7,8 +7,9 @@
 
 #include "utilities.hpp"
 
-namespace pints {
-void e_implicit_exponential_mesh(py::dict params, py::array Itot, py::array t);
+namespace electrochemistry {
+void e_implicit_exponential_mesh(py::dict params, py::array_t<double> Itot,
+                                 py::array_t<double> t);
 }
 
 #endif

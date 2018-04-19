@@ -1,11 +1,3 @@
-from setuptools import find_packages
-
-setup(
-    packages=find_packages('src'),
-    package_dir={'': 'src'},
-
-)
-
 import os
 import re
 import sys
@@ -14,6 +6,7 @@ import subprocess
 
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
+from setuptools import find_packages
 from distutils.version import LooseVersion
 
 
@@ -72,13 +65,19 @@ class CMakeBuild(build_ext):
             ['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
 
 setup(
-    name='cmake_example',
+    name='electrochemistry',
     version='0.0.1',
-    author='Dean Moldovan',
-    author_email='dean0x7d@gmail.com',
-    description='A test project using pybind11 and CMake',
+    author='Martin Robinson',
+    author_email='martin.robinson@cs.ox.ac.uk',
+    description='Provides electrochemistry models for pints',
     long_description='',
-    ext_modules=[CMakeExtension('cmake_example')],
+    ext_modules=[CMakeExtension('electrochemistry/electrochemistry')],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
+    packages=find_packages('src'),
+    package_dir={'': 'src'},
+    test_suite='test',
+    install_requires=[
+        'pints',
+    ]
 )
