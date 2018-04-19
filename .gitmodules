@@ -1,3 +1,9 @@
 [submodule "pints"]
 	path = pints
 	url = git@github.com:pints-team/pints.git
+[submodule "lib/eigen-git-mirror"]
+	path = lib/eigen-git-mirror
+	url = https://github.com/eigenteam/eigen-git-mirror.git
+[submodule "lib/pybind11"]
+	path = lib/pybind11
+	url = https://github.com/pybind/pybind11.git
