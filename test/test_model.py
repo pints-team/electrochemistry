@@ -65,7 +65,7 @@ DEFAULT_POMS = {
 
 class TestModel(unittest.TestCase):
 
-    def test_unwrapped(self):
+    def test_ec_unwrapped(self):
         """
         Runs a simple simulation
         """
@@ -73,15 +73,28 @@ class TestModel(unittest.TestCase):
         import numpy as np
         # Create model
         model = electrochemistry.ECModel(DEFAULT)
+        times = model.suggest_times()
         # Run simulation
-        values, times = model.simulate()
-        # Run simulation on specific time points
-        values2, times2 = model.simulate(use_times=times)
+        values = model.simulate(times)
 
-        self.assertEqual(len(values), len(values2))
-        self.assertTrue(np.all(np.array(values) == np.array(values2)))
+        self.assertEqual(len(values), len(times))
 
-    def test_wrapper(self):
+    def test_poms_unwrapped(self):
+        """
+        Runs a simple simulation
+        """
+        import electrochemistry
+        import numpy as np
+        # Create model
+        model = electrochemistry.POMModel(DEFAULT_POMS)
+        times = model.suggest_times()
+        values = model.simulate(times)
+
+        self.assertEqual(len(values), len(times))
+
+
+
+    def test_ec_wrapper(self):
         """
         Wraps a `pints.ForwardModel` around a model.
         """
@@ -89,109 +102,21 @@ class TestModel(unittest.TestCase):
         import numpy as np
 
         # Create some toy data
-        ecmodel = electrochemistry.ECModel(DEFAULT)
-        values, times = ecmodel.simulate()
+        model = electrochemistry.ECModel(DEFAULT)
+        times = model.suggest_times()
+        values = model.simulate(times)
 
         # Test wrapper
         parameters = ['E0', 'k0', 'Cdl']
-        pints_model = electrochemistry.PintsModelAdaptor(ecmodel, parameters)
+        pints_model = electrochemistry.PintsModelAdaptor(model, parameters)
 
         # Get real parameter values
         # Note: Retrieving them from ECModel to get non-dimensionalised form!
-        real = np.array([ecmodel.params[x] for x in parameters])
+        real = np.array([model.params[x] for x in parameters])
         # Test simulation via wrapper class
         values2 = pints_model.simulate(real, times)
         self.assertEqual(len(values), len(values2))
         self.assertTrue(np.all(np.array(values) == np.array(values2)))
-
-    def test_poms_with_bayesian_loglike(self):
-        import pints
-        import electrochemistry
-        import numpy as np
-
-        poms_model = electrochemistry.POMModel(DEFAULT_POMS)
-        values, times = poms_model.simulate(poms_model.suggest_times())
-
-        names = ['E01', 'E02', 'E11', 'E12', 'E21', 'E22',
-                 'k01', 'k02', 'k11', 'k12', 'k21', 'k22', 'gamma']
-
-        e0_buffer = 0.1 * \
-            (poms_model.params['Estart'] - poms_model.params['Ereverse'])
-        max_current = np.max(values)
-        max_k0 = poms_model.non_dimensionalise(10000, 'k01')
-        lower_bounds = [poms_model.params['Ereverse'] + e0_buffer,
-                        poms_model.params['Ereverse'] + e0_buffer,
-                        poms_model.params['Ereverse'] + e0_buffer,
-                        poms_model.params['Ereverse'] + e0_buffer,
-                        poms_model.params['Ereverse'] + e0_buffer,
-                        poms_model.params['Ereverse'] + e0_buffer,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0.1,
-                        0.005 * max_current]
-
-        upper_bounds = [poms_model.params['Estart'] - e0_buffer,
-                        poms_model.params['Estart'] - e0_buffer,
-                        poms_model.params['Estart'] - e0_buffer,
-                        poms_model.params['Estart'] - e0_buffer,
-                        poms_model.params['Estart'] - e0_buffer,
-                        poms_model.params['Estart'] - e0_buffer,
-                        max_k0,
-                        max_k0,
-                        max_k0,
-                        max_k0,
-                        max_k0,
-                        max_k0,
-                        5,
-                        0.03 * max_current]
-
-        priors = []
-        E0 = 0.5 * (poms_model.params['E01'] + poms_model.params['E02'])
-        E0_diff = 1
-        priors.append(pints.NormalPrior(E0, (2 * E0_diff)**2))
-        priors.append(pints.NormalPrior(E0, (2 * E0_diff)**2))
-        E1 = 0.5 * (poms_model.params['E11'] + poms_model.params['E12'])
-        E1_diff = 1
-        priors.append(pints.NormalPrior(E1, (2 * E1_diff)**2))
-        priors.append(pints.NormalPrior(E1, (2 * E1_diff)**2))
-        E2 = 0.5 * (poms_model.params['E21'] + poms_model.params['E22'])
-        E2_diff = 1
-        priors.append(pints.NormalPrior(E2, (2 * E2_diff)**2))
-        priors.append(pints.NormalPrior(E2, (2 * E2_diff)**2))
-        priors.append(
-            pints.UniformPrior(lower_bounds[6:14], upper_bounds[6:14]))
-
-        # Load a forward model
-        pints_model = electrochemistry.PintsModelAdaptor(poms_model, names)
-
-        # Create an object with links to the model and time series
-        problem = pints.SingleSeriesProblem(pints_model, times, values)
-
-        # Create a log-likelihood function scaled by n
-        log_likelihood = pints.ScaledLogLikelihood(
-            pints.UnknownNoiseLogLikelihood(problem))
-
-        # Create a uniform prior over both the parameters and the new noise
-        # variable
-        prior = pints.ComposedPrior(*priors)
-
-        # Create an unnormalised (prior * likelihood)
-        score = pints.LogPosterior(prior, log_likelihood)
-
-        # Select some boundaries
-        boundaries = pints.Boundaries(lower_bounds, upper_bounds)
-
-        # pick a reasonable estimate
-        x0 = [E0, E0, E1, E1, E2, E2] \
-            + [0.5 * (u - l)
-               for l, u in zip(lower_bounds[6:14], upper_bounds[6:14])]
-
-        self.assertAlmostEqual(
-            log_likelihood(x0) + math.log(prior(x0)), score(x0))
 
 
 if __name__ == '__main__':

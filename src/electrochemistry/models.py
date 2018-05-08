@@ -253,6 +253,10 @@ class POMModel:
         self.params['Ru'] = self.dim_params['Ru'] * abs(self.I0) / self.E0
         self.params['Cdl'] = self.dim_params['Cdl'] * \
             self.dim_params['a'] * self.E0 / (abs(self.I0) * self.T0)
+        self.params['CdlE'] = 0
+        self.params['CdlE2'] = 0
+        self.params['CdlE3'] = 0
+        self.params['Nt'] = 600
 
         self.params['gamma'] = 1.0
 
