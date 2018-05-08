@@ -1,16 +1,14 @@
 # Pints: Electrochemistry
 
-## To build
+## To Install 
 
-Building:
-
-- Create a build directory (pints/electrochemistry/build)
-- Run cmake in the build directory (cd build; cmake ../)
-- (Optional) Run ccmake in the build directory (ccmake ../) and
-   set CMAKE_BUILD_TYPE to 'Release', then use 'c' and 'g' to
-   regenerate
-- Run make in the build directory (make)
-
-Testing:
-
-- Run run-test.sh
+- install pints
+- make sure you get submodules (pybind11 and eigen)
+```bash
+    $ git submodule init
+    $ git submodule init
+```
+- install with pip
+```bash
+    $ pip install -e .
+```
