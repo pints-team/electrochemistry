@@ -4,19 +4,29 @@ dist: trusty
 
 language: python
 
-compiler:
-    - gcc
-    - clang
-
 env:
     matrix:
-        - PINTS_COMPILER=gcc PINTS_BUILD_TYPE=Release
-        - PINTS_COMPILER=gcc PINTS_BUILD_TYPE=Debug
-        - PINTS_COMPILER=clang PINTS_BUILD_TYPE=Release
-        - PINTS_COMPILER=clang PINTS_BUILD_TYPE=Debug
-
-python:
-  - "2.7"
+        include:
+        - python: "2.7"
+          env:
+            - PINTS_COMPILER=clang
+            - PINTS_BUILD_TYPE=Release
+        - python: "2.7"
+          env:
+            - PINTS_COMPILER=clang
+            - PINTS_BUILD_TYPE=Debug
+        - python: "2.7"
+          env:
+            - PINTS_COMPILER=gcc
+            - PINTS_BUILD_TYPE=Debug
+        - python: "3.6"
+          env:
+            - PINTS_COMPILER=clang
+            - PINTS_BUILD_TYPE=Release
+        - python: "3.6"
+          env:
+            - PINTS_COMPILER=gcc
+            - PINTS_BUILD_TYPE=Debug
 
 addons:
   apt:
@@ -28,7 +38,6 @@ addons:
     - gcc-5
     - g++-5
     - clang-3.8
-    - libboost1.55-all-dev
 
 # command to install dependencies
 install:

@@ -73,6 +73,12 @@ class ECModel:
         self.params['Cdl'] = self.dim_params['Cdl'] * \
             self.dim_params['a'] * self.E0 / (abs(self.I0) * self.T0)
 
+        self.params['Nx'] = 300
+        self.params['Nt'] = 200
+        self.params['startn'] = 0
+
+
+
         self._nondim_params = {}
         self._nondim_params['Estart'] = self.params['Estart']
         self._nondim_params['Ereverse'] = self.params['Ereverse']
@@ -140,8 +146,8 @@ class ECModel:
     def simulate(self, times):
         times = np.asarray(times, dtype='double')
         current = np.empty_like(times)
-        e_implicit_exponential_mesh(params, current, times)
-        return current, times
+        e_implicit_exponential_mesh(self.params, current, times)
+        return current
 
     def set_params_from_vector(self, vector, names):
         for value, name in zip(vector, names):
@@ -298,7 +304,7 @@ class POMModel:
         times = np.asarray(times, dtype='double')
         current = np.empty_like(times)
         seq_electron_transfer3_explicit(self.params, current, times)
-        return current, times
+        return current
 
     def set_params_from_vector(self, vector, names):
         for value, name in zip(vector, names):
@@ -337,12 +343,10 @@ class PintsModelAdaptor(pints.ForwardModel):
     def __init__(self, ec_model, names):
         self.ec_model = ec_model
         self.names = names
-        self.current = pints_vector()
 
     def dimension(self):
         return len(self.names)
 
     def simulate(self, parameters, times):
         self.ec_model.set_params_from_vector(parameters, self.names)
-        self.ec_model.simulate(use_times=times, use_current=self.current)
-        return self.current
+        return self.ec_model.simulate(times)
