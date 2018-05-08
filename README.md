@@ -6,7 +6,7 @@
 - make sure you get submodules (pybind11 and eigen)
 ```bash
     $ git submodule init
-    $ git submodule init
+    $ git submodule update
 ```
 - install with pip
 ```bash
