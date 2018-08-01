@@ -1,14 +1,17 @@
 from __future__ import print_function
 from math import sqrt, pi
-from electrochemistry import seq_electron_transfer3_explicit, e_implicit_exponential_mesh
+from electrochemistry import seq_electron_transfer1_explicit
+from electrochemistry import seq_electron_transfer2_explicit
+from electrochemistry import seq_electron_transfer3_explicit
+from electrochemistry import e_implicit_exponential_mesh
 import pints
 import numpy as np
 import copy
 
 
 class ECModel:
-
-    """Represents one electron transfer model in solution
+    """
+    Represents one electron transfer model in solution
             A + e- <-> B
 
     Args:
@@ -186,11 +189,44 @@ class ECModel:
         return E_0, T_0, L_0, I_0
 
 
-class POMModel:
+class SequentialElectronTransfer:
+    """
+    Represents a sequence of N sequential two-electron transfers, for 1 <= N <= 3. That is,
 
-    def __init__(self, params):
+            A + e- <-> B  process 1, 1st electron transfer
+            B + e- <-> C  process 1, 2nd electron transfer
+
+            C + e- <-> D  process 2, 1st electron transfer
+            D + e- <-> E  process 2, 2nd electron transfer
+
+            E + e- <-> F  process 3, 1st electron transfer
+            F + e- <-> G  process 3, 2nd electron transfer
+
+
+    """
+
+    def __init__(self, params, N):
+    """
+    Args:
+        N (int): number of processes (1 <= N <= 3)
+        params (dict): dictionary of parameters, containing these keys
+                 'reversed', 'Estart','Ereverse','omega','phase','dE','v','T','a','c_inf','D'
+                  'Ru',
+                 'Cdl',
+                 'E01','E02',
+                 'k01','k02',
+                 'alpha1','alpha2'
+        if N > 1:
+                 'E11','E12',
+                 'k11','k12',
+                 'alpha11','alpha12'
+        if N > 2:
+                 'E21','E22',
+                 'k21','k22',
+                 'alpha21','alpha22'
+    """
         try:
-            print('creating POMModel with (dimensional) parameters:')
+            print('creating SequentialElectronTransfer with (dimensional) parameters:')
             print('\tEstart: ', params['Estart'])
             print('\tEreverse: ', params['Ereverse'])
             print('\tomega: ', params['omega'])
@@ -204,24 +240,43 @@ class POMModel:
             print('\tCdl: ', params['Cdl'])
             print('\tE01: ', params['E01'])
             print('\tE02: ', params['E02'])
-            print('\tE11: ', params['E11'])
-            print('\tE12: ', params['E12'])
-            print('\tE21: ', params['E21'])
-            print('\tE22: ', params['E22'])
+            if N > 1:
+                print('\tE11: ', params['E11'])
+                print('\tE12: ', params['E12'])
+            if N > 2:
+                print('\tE21: ', params['E21'])
+                print('\tE22: ', params['E22'])
             print('\tk01: ', params['k01'])
             print('\tk02: ', params['k02'])
-            print('\tk11: ', params['k11'])
-            print('\tk12: ', params['k12'])
-            print('\tk21: ', params['k21'])
-            print('\tk22: ', params['k22'])
+            if N > 1:
+                print('\tk11: ', params['k11'])
+                print('\tk12: ', params['k12'])
+            if N > 2:
+                print('\tk21: ', params['k21'])
+                print('\tk22: ', params['k22'])
+            print('\talpha1: ', params['alpha1'])
+            print('\talpha2: ', params['alpha2'])
+            if N > 1:
+                print('\talpha11: ', params['alpha11'])
+                print('\talpha12: ', params['alpha12'])
+            if N > 2:
+                print('\talpha21: ', params['alpha21'])
+                print('\talpha22: ', params['alpha22'])
+
             print('\tGamma: ', params['Gamma'])
         except NameError as e:
             print('NameError: ', e.value)
 
+        if N > 2:
+            self._run = seq_electron_transfer3_explicit
+        elif N > 1:
+            self._run = seq_electron_transfer2_explicit
+        else:
+            self._run = seq_electron_transfer1_explicit
+
         self.dim_params = params
 
-        self.E0, self.T0, self.L0, self.I0 = self._calculate_characteristic_values(
-        )
+        self.E0, self.T0, self.L0, self.I0 = self._calculate_characteristic_values()
 
         self.params = dict()
         self.params['Estart'] = self.dim_params['Estart'] / self.E0
@@ -232,23 +287,29 @@ class POMModel:
 
         self.params['k01'] = self.dim_params['k01'] * self.T0
         self.params['k02'] = self.dim_params['k02'] * self.T0
-        self.params['k11'] = self.dim_params['k11'] * self.T0
-        self.params['k12'] = self.dim_params['k12'] * self.T0
-        self.params['k21'] = self.dim_params['k21'] * self.T0
-        self.params['k22'] = self.dim_params['k22'] * self.T0
+        if N > 1:
+            self.params['k11'] = self.dim_params['k11'] * self.T0
+            self.params['k12'] = self.dim_params['k12'] * self.T0
+        if N > 2:
+            self.params['k21'] = self.dim_params['k21'] * self.T0
+            self.params['k22'] = self.dim_params['k22'] * self.T0
         self.params['E01'] = self.dim_params['E01'] / self.E0
         self.params['E02'] = self.dim_params['E02'] / self.E0
-        self.params['E11'] = self.dim_params['E11'] / self.E0
-        self.params['E12'] = self.dim_params['E12'] / self.E0
-        self.params['E21'] = self.dim_params['E21'] / self.E0
-        self.params['E22'] = self.dim_params['E22'] / self.E0
+        if N > 1:
+            self.params['E11'] = self.dim_params['E11'] / self.E0
+            self.params['E12'] = self.dim_params['E12'] / self.E0
+        if N > 2:
+            self.params['E21'] = self.dim_params['E21'] / self.E0
+            self.params['E22'] = self.dim_params['E22'] / self.E0
 
         self.params['alpha1'] = self.dim_params['alpha1']
         self.params['alpha2'] = self.dim_params['alpha2']
-        self.params['alpha11'] = self.dim_params['alpha11']
-        self.params['alpha12'] = self.dim_params['alpha12']
-        self.params['alpha21'] = self.dim_params['alpha21']
-        self.params['alpha22'] = self.dim_params['alpha22']
+        if N > 1:
+            self.params['alpha11'] = self.dim_params['alpha11']
+            self.params['alpha12'] = self.dim_params['alpha12']
+        if N > 2:
+            self.params['alpha21'] = self.dim_params['alpha21']
+            self.params['alpha22'] = self.dim_params['alpha22']
 
         self.params['Ru'] = self.dim_params['Ru'] * abs(self.I0) / self.E0
         self.params['Cdl'] = self.dim_params['Cdl'] * \
@@ -307,7 +368,7 @@ class POMModel:
     def simulate(self, times):
         times = np.asarray(times, dtype='double')
         current = np.empty_like(times)
-        seq_electron_transfer3_explicit(self.params, current, times)
+        self._run(self.params, current, times)
         return current
 
     def set_params_from_vector(self, vector, names):
@@ -342,18 +403,4 @@ class POMModel:
         return E_0, T_0, L_0, I_0
 
 
-class PintsModelAdaptor(pints.ForwardModel):
 
-    def __init__(self, ec_model, names):
-        self.ec_model = ec_model
-        self.names = names
-
-    def n_parameters(self):
-        return len(self.names)
-
-    def n_outputs(self):
-        return 1
-
-    def simulate(self, parameters, times):
-        self.ec_model.set_params_from_vector(parameters, self.names)
-        return self.ec_model.simulate(times)

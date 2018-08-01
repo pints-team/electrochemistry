@@ -132,9 +132,10 @@ struct seq_elec_fun {
     }
 };
 
-void seq_electron_transfer3_explicit(py::dict params,
-                                     py::array_t<double> Itot_numpy,
-                                     py::array_t<double> t_numpy) {
+template <unsigned int N>
+void seq_electron_transfer_explicit(py::dict params,
+                                    py::array_t<double> Itot_numpy,
+                                    py::array_t<double> t_numpy) {
     py::buffer_info Itot_info = Itot_numpy.request();
     py::buffer_info t_info = t_numpy.request();
 
@@ -148,7 +149,6 @@ void seq_electron_transfer3_explicit(py::dict params,
     auto Itot = reinterpret_cast<double *>(Itot_info.ptr);
     auto t = reinterpret_cast<double *>(t_info.ptr);
 
-    const size_t N = 3;
     double k01[N], k02[N], alpha1[N], alpha2[N], E01[N], E02[N], gamma[N];
 
     k01[0] = get(params, std::string("k01"), 35.0);
@@ -258,4 +258,15 @@ void seq_electron_transfer3_explicit(py::dict params,
         Itot[n_out] = (Itot1 - Itot0) * (t[n_out] - t1 + dt) / dt + Itot0;
     }
 }
+
+template void seq_electron_transfer_explicit<1>(py::dict params,
+                                                py::array_t<double> Itot_numpy,
+                                                py::array_t<double> t_numpy);
+template void seq_electron_transfer_explicit<2>(py::dict params,
+                                                py::array_t<double> Itot_numpy,
+                                                py::array_t<double> t_numpy);
+template void seq_electron_transfer_explicit<3>(py::dict params,
+                                                py::array_t<double> Itot_numpy,
+                                                py::array_t<double> t_numpy);
+
 }  // namespace electrochemistry
