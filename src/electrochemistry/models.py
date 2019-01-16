@@ -1,6 +1,6 @@
 from __future__ import print_function
 from math import sqrt, pi
-from electrochemistry import seq_electron_transfer3_explicit, e_implicit_exponential_mesh
+import electrochemistry
 import pints
 import numpy as np
 import copy
@@ -77,8 +77,6 @@ class ECModel:
         self.params['Nt'] = 200
         self.params['startn'] = 0
 
-
-
         self._nondim_params = {}
         self._nondim_params['Estart'] = self.params['Estart']
         self._nondim_params['Ereverse'] = self.params['Ereverse']
@@ -146,7 +144,8 @@ class ECModel:
     def simulate(self, times):
         times = np.asarray(times, dtype='double')
         current = np.empty_like(times)
-        e_implicit_exponential_mesh(self.params, current, times)
+        electrochemistry.e_implicit_exponential_mesh(
+            self.params, current, times)
         return current
 
     def set_params_from_vector(self, vector, names):
@@ -307,7 +306,8 @@ class POMModel:
     def simulate(self, times):
         times = np.asarray(times, dtype='double')
         current = np.empty_like(times)
-        seq_electron_transfer3_explicit(self.params, current, times)
+        electrochemistry.seq_electron_transfer3_explicit(
+            self.params, current, times)
         return current
 
     def set_params_from_vector(self, vector, names):
