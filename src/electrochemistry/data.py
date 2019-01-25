@@ -14,11 +14,13 @@ def read_cvsin_type_1(filename):
         current (numpy vector): vector of current samples
     """
 
-    exp_data = np.loadtxt(filename, skiprows=19)
     if filename[-11:] == '_cv_current':
+        print('filename ends with _cv_current')
+        exp_data = np.loadtxt(filename)
         t_index = 0
         c_index = 1
     else:
+        exp_data = np.loadtxt(filename, skiprows=19)
         t_index = 2
         c_index = 1
     return exp_data[:, t_index], exp_data[:, c_index]

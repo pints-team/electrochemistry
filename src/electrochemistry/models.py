@@ -77,8 +77,6 @@ class ECModel:
         self.params['Nt'] = 200
         self.params['startn'] = 0
 
-
-
         self._nondim_params = {}
         self._nondim_params['Estart'] = self.params['Estart']
         self._nondim_params['Ereverse'] = self.params['Ereverse']
@@ -112,6 +110,8 @@ class ECModel:
             return value * self.E0 / self.I0
         elif name == 'Cdl':
             return value * self.I0 * self.T0 / (self.dim_params['a'] * self.E0)
+        elif name == 'I':
+            return value * self.I0
         else:
             return NaN
 
@@ -136,6 +136,8 @@ class ECModel:
             return value / self.E0 * self.I0
         elif name == 'Cdl':
             return value / self.I0 / self.T0 * (self.dim_params['a'] * self.E0)
+        elif name == 'I':
+            return value / self.I0
         else:
             return NaN
 
@@ -199,7 +201,6 @@ class POMModel:
             print('\tdc scan rate: ', params['v'])
             print('\ttemperature: ', params['T'])
             print('\telectrode area: ', params['a'])
-            print('\tc_inf: ', params['c_inf'])
             print('\tRu: ', params['Ru'])
             print('\tCdl: ', params['Cdl'])
             print('\tE01: ', params['E01'])
@@ -277,6 +278,10 @@ class POMModel:
             return value * self.I0 * self.T0 / (self.dim_params['a'] * self.E0)
         elif name == 'gamma':
             return value
+        elif name == 'I':
+            return value * self.I0
+        elif name[:5] == 'alpha':
+            return value
         else:
             return NaN
 
@@ -296,6 +301,10 @@ class POMModel:
         elif name == 'Cdl':
             return value / self.I0 / self.T0 * (self.dim_params['a'] * self.E0)
         elif name == 'gamma':
+            return value
+        elif name == 'I':
+            return value / self.I0
+        elif name[:5] == 'alpha':
             return value
         else:
             return NaN
