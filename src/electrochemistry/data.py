@@ -28,7 +28,8 @@ def read_cvsin_type_1(filename):
 
 class ECTimeData:
 
-    def __init__(self, filename, model, ignore_begin_samples, ignore_end_samples=0, datafile_type='scsin_type_1'):
+    def __init__(self, filename, model, ignore_begin_samples,
+                 ignore_end_samples=0, samples_per_period=200, datafile_type='scsin_type_1'):
         print('ECTimeData: loading data from filename = ', filename, ' ...')
         self.times, self.current = read_cvsin_type_1(filename)
 
@@ -44,17 +45,18 @@ class ECTimeData:
 
         print('\tCut data to multiple of period')
         dt = self.times[100] - self.times[99]
-        samples_per_period = 1.0 / (model.dim_params['omega'] * dt)
-        discard_samples = int(len(self.current) % samples_per_period)
+        data_samples_per_period = 1.0 / (model.dim_params['omega'] * dt)
+        discard_samples = int(len(self.current) % data_samples_per_period)
         if (discard_samples > 0):
             self.times = self.times[0:-discard_samples]
             self.current = self.current[0:-discard_samples]
 
-        downsample = int(floor(samples_per_period / 200.0))
+        downsample = int(floor(data_samples_per_period /
+                               samples_per_period))
         if downsample == 0:
             downsample = 1
         print('\tBefore downsampling, have ', len(self.times), ' data points')
-        print('\tDatafile has ', samples_per_period, ' samples per period.')
+        print('\tDatafile has ', data_samples_per_period, ' samples per period.')
         print(
             '\tReducing number of samples using a moving average window of size ', downsample)
 
