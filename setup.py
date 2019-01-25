@@ -64,6 +64,7 @@ class CMakeBuild(build_ext):
         subprocess.check_call(
             ['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
 
+
 setup(
     name='electrochemistry',
     version='0.0.1',

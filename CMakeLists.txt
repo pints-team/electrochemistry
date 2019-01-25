@@ -15,6 +15,9 @@ list(APPEND include_dirs ${lib_dir}/eigen3)
 # Pybind11
 add_subdirectory(${lib_dir}/pybind11)
 
+# Boost 
+list(APPEND include_dirs ${lib_dir}/boost)
+
 set(source_dir src/electrochemistry)
 
 set(source_files 

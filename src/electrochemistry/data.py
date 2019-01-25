@@ -2,6 +2,8 @@ from __future__ import print_function
 import numpy as np
 from math import pi, floor, ceil
 
+import electrochemistry
+
 
 def read_cvsin_type_1(filename):
     """ read in a datafile of format svsin_type_1
